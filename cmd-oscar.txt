@@ -1,0 +1,16 @@
+1 ecommerce sanity    "next": "13.4.4",,
+/////
+npm i 
+npm i mongoose next-connect axios multer bcryptjs cloudinary                
+npm i react-icons/io5
+///////
+1 prisma install in nextjs
+npm install typescript ts-node @types/node --save-dev
+npm install prisma --save-dev
+npm i @prisma/client
+npx prisma init
+npx prisma migrate dev
+/////////////
+gt 
+1. 2 no portfolio
+2. Start frontend city hub
