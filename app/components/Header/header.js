@@ -58,7 +58,7 @@ type="image"
             </button>
           </li> */}
           <li>
-            <a className="header__resume btn" href="https://drive.google.com/file/d/1ZWSvKmxWQsS7T55qfkH-0Z_fc7Zio1mj/view?usp=sharing" target="_blank">Resume</a>
+            <a className="header__resume btn" href="https://drive.google.com/file/d/1pbmoIH6oQUoUVF8Mtp4LO0-dxi1RLoOP/view?usp=sharing" target="_blank">Resume</a>
          
           
             {/* <Link className="header__resume btn" href="https://facebook.com" target="_blank">Resume</Link>
