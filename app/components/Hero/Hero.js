@@ -28,7 +28,7 @@ const Hero = () => {
       </h1>
       <p className="hero__description">
         A passionate <strong>Fullstack </strong> Web Designer and 
-        Web Applicatation developer and specialized in building 
+        Web Application developer and specialized in building 
         stunning pixel-perfect interactive websites/applications.
       </p>
     

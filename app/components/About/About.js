@@ -10,8 +10,8 @@ const About = () => {
           <p className="about__description">
             Hello there! I'm Oscar, a
             <strong> Fullstack </strong> Website designer 
-            and Web Applicatation developer 
-           from Bangladesh. I am studying CSE in AIUB 
+            and Web Application developer 
+           from Bangladesh. I have completed studying CSE from AIUB 
            and passionate to do exciting project for 
            this world. 
           </p>
@@ -38,9 +38,9 @@ const About = () => {
               <li className="about__list">Laravel</li>
             </ul>
             <ul className="about__ul">
+              <li className="about__list">Node.js</li>
+              <li className="about__list">CSS3, TailwindCSS</li>
               <li className="about__list">WordPress</li>
-              <li className="about__list">Figma</li>
-              <li className="about__list">TailwindCSS</li>
             </ul>
             {/* <ul className="about__ul">
               <li className="about__list">Laravel</li>
