@@ -1,184 +1,221 @@
-import Link from "next/link"
-import './Work.css';
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa6";
+import { projects } from "../../data/projects";
+import "./Work.css";
 
 const Work = () => {
-    return (
-      <section className="work container section">
-      <h2 className="work__title">Projects</h2>
-      <p className="work__description">
-      Projects that demonstrate my coding skills.
-      </p>
-      <div className="work__container">
-        {/* <!-- Project 1 --> */}
-        <h3 className="work__project-title">CityHub</h3>
-        <div className="work__img-wrapper work__image1">
-          
+  const trackRef = useRef(null);
+  const [loadingProjectSlug, setLoadingProjectSlug] = useState(null);
+  const motionRef = useRef({ offset: 0, direction: 1, remaining: 0 });
+  const dragRef = useRef({
+    pointerId: null,
+    startX: 0,
+    lastX: 0,
+    moved: false,
+    suppressClick: false,
+  });
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return undefined;
+
+    let frameId;
+    let previousTime = 0;
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    const animate = (time) => {
+      const gap = Number.parseFloat(window.getComputedStyle(track).columnGap) || 0;
+      const loopWidth = (track.scrollWidth + gap) / 2;
+      const deltaTime = previousTime ? Math.min(time - previousTime, 32) : 16;
+      previousTime = time;
+
+      if (loopWidth > 0 && dragRef.current.pointerId === null) {
+        const motion = motionRef.current;
+        const isNudging = motion.remaining > 0;
+        const speed = isNudging ? 0.42 : reducedMotion ? 0 : 0.035;
+        const direction = isNudging ? motion.direction : 1;
+        const distance = speed * deltaTime;
+
+        motion.offset = (motion.offset + direction * distance + loopWidth) % loopWidth;
+        if (isNudging) {
+          motion.remaining = Math.max(0, motion.remaining - distance);
+        }
+
+        track.style.transform = `translate3d(${-motion.offset}px, 0, 0)`;
+      }
+
+      frameId = window.requestAnimationFrame(animate);
+    };
+
+    frameId = window.requestAnimationFrame(animate);
+    return () => window.cancelAnimationFrame(frameId);
+  }, []);
+
+  const nudge = (direction) => {
+    const firstCard = trackRef.current?.querySelector(".work__card");
+    if (!firstCard) return;
+
+    const styles = window.getComputedStyle(trackRef.current);
+    const gap = Number.parseFloat(styles.columnGap) || 24;
+    motionRef.current.direction = direction;
+    motionRef.current.remaining = firstCard.getBoundingClientRect().width + gap;
+  };
+
+  const handlePointerDown = (event) => {
+    if (event.button !== 0 || !event.isPrimary) return;
+
+    dragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      lastX: event.clientX,
+      moved: false,
+      suppressClick: false,
+    };
+    const captureTarget = event.target.closest(".work__card") || event.currentTarget;
+    captureTarget.setPointerCapture(event.pointerId);
+    event.currentTarget.classList.add("is-dragging");
+  };
+
+  const handlePointerMove = (event) => {
+    const drag = dragRef.current;
+    const track = trackRef.current;
+    if (drag.pointerId !== event.pointerId || !track) return;
+
+    const deltaX = event.clientX - drag.lastX;
+    drag.lastX = event.clientX;
+    drag.moved ||= Math.abs(event.clientX - drag.startX) > 5;
+
+    const styles = window.getComputedStyle(track);
+    const gap = Number.parseFloat(styles.columnGap) || 0;
+    const loopWidth = (track.scrollWidth + gap) / 2;
+    if (loopWidth <= 0) return;
+
+    const motion = motionRef.current;
+    motion.offset = ((motion.offset - deltaX) % loopWidth + loopWidth) % loopWidth;
+    motion.remaining = 0;
+    track.style.transform = `translate3d(${-motion.offset}px, 0, 0)`;
+  };
+
+  const handlePointerEnd = (event) => {
+    const drag = dragRef.current;
+    if (drag.pointerId !== event.pointerId) return;
+
+    drag.suppressClick = drag.moved;
+    drag.pointerId = null;
+    event.currentTarget.classList.remove("is-dragging");
+  };
+
+  const handleClickCapture = (event) => {
+    if (!dragRef.current.suppressClick) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    dragRef.current.suppressClick = false;
+  };
+
+  const renderCard = (project, isDuplicate = false) => (
+    <Link
+      className="work__card"
+      href={`projects/${project.slug}`}
+      key={`${project.slug}-${isDuplicate ? "duplicate" : "original"}`}
+      tabIndex={isDuplicate ? -1 : undefined}
+      aria-hidden={isDuplicate || undefined}
+      aria-busy={loadingProjectSlug === project.slug || undefined}
+      onClick={(event) => {
+        if (
+          event.defaultPrevented ||
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey
+        ) {
+          return;
+        }
+
+        setLoadingProjectSlug(project.slug);
+      }}
+    >
+      <div className="work__card-image">
         <Image
-      className="lazy loading mbImg"
-      src="/Mern.png"
-      width={500}
-      height={350}
-      alt="Next.Js and Express.js Project "
-    />
-          
+          src={project.image}
+          width={640}
+          height={420}
+          alt={project.alt}
+          sizes="(max-width: 640px) 86vw, (max-width: 1100px) 44vw, 360px"
+        />
+        {loadingProjectSlug === project.slug && (
+          <span className="work__card-loader" role="status" aria-label="Opening project">
+            <span className="work__card-spinner" />
+          </span>
+        )}
+      </div>
+      <div className="work__card-copy">
+        <div>
+          <span className="work__card-category">{project.category}</span>
+          <h3>{project.title}</h3>
+          <p>{project.summary}</p>
         </div>
-        <div className="work__project work__content1">
-          <h3 className="work__project-subtitle">CityHub</h3>
-          <p className="work__project-description1">
-          Tech Stack: (Main Website) Next.js | (Dashboard) React | 
-          Redux Toolkit | RTK Query | (Backend) Express.js |
-           MongoDB | CSS | JWT | Cloudinary
-             </p>
-          <p className="work__project-description2">
-          CityHub contains Features like Employee management, 
-          User Role based accebility, Notification system, 
-           multi page form submission, General User 
-          management, Profile image 
-          upload and many features added.
-         </p>
-          <a className="btn work__project-btn" href="https://github.com/OSCAR-OD/CityHub-Next.js-Frontend" target="_blank" >Check</a>
+        <span className="work__card-arrow" aria-hidden="true">
+          <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+        </span>
+      </div>
+    </Link>
+  );
+
+  return (
+    <section className="work container section" aria-labelledby="work-title">
+      <div className="work__heading">
+        {/* <span className="work__eyebrow">Selected work</span> */}
+        <h2 className="work__title" id="work-title">Company Projects</h2>
+        <p className="work__description">
+          Projects that demonstrate my skills for clients.
+        </p>
+      </div>
+
+      <div
+        className="work__slider"
+        aria-label="Client projects carousel"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerEnd}
+        onPointerCancel={handlePointerEnd}
+        onClickCapture={handleClickCapture}
+      >
+        <div className="work__track" ref={trackRef}>
+          {projects.map((project) => renderCard(project))}
+          {projects.map((project) => renderCard(project, true))}
         </div>
-        {/* <!-- Project 2 --> */}
-        <h3 className="work__project-title">Draze Force</h3>
-        <div className="work__img-wrapper work__image2">
-          {/* <img
-            className="lazy loading"
-            src="https://via.placeholder.com/900"
-            data-src="/drazeforce.png"
-            alt="Draze Force website"
-          /> */}
-             
-             <Image
-              className="lazy loading"
-              src="/sdpm.png"
-              width={500}
-              height={350}
-              alt="Next.js Project"
-              />
-        </div>
-        <div className="work__project work__content2">
-          <h3 className="work__project-subtitle">SDPM + SQAT</h3>
-          <p className="work__project-description1">
-            Sunt sint labore officia irure. Dolore pariatur nisi deserunt sunt
-            exercitation excepteur do reprehenderit fugiat Lorem sint ut.
-          </p>
-          <p className="work__project-description2">
-            Mollit ipsum mollit magna occaecat eiusmod sint fugiat est non
-            adipisicing esse fugiat deserunt minim. Enim occaecat velit eu non
-            amet nostrud officia duis.
-          </p>
-          <a className="btn work__project-btn" href="https://github.com/OSCAR-OD/Software-Development-Project-Management" target="_blank" >Check</a>
-        </div>
-        {/* <!-- Project 3 --> */}
-        <h3 className="work__project-title">SmartCity</h3>
-        <div className="work__img-wrapper work__image3">
-          {/* <img
-            className="lazy loading"
-            src="https://via.placeholder.com/900"
-            data-src="/artren.png"
-            alt="Artren website"
-          /> */}
-          <Image
-           className="lazy loading"
-           src="/Laravel.png"
-           width={500}
-           height={350}
-           alt="Next.js Project"
-           />
-        </div>
-        <div className="work__project work__content3">
-          <h3 className="work__project-subtitle">SmartCity</h3>
-          <p className="work__project-description1">
-          Tech Stacks: (Frontend) React | (Backend) Laravel | CSS 
-            </p>
-          <p className="work__project-description2">
-          SmartCity is a web application that uses Laravel and
-           React to provide a modern and user-friendly interface
-            for providing necessary services to city dwellers.
-          </p>
-          <a className="btn work__project-btn" href="https://github.com/OSCAR-OD/SmartCity-a-Laravel-React-Project" target="_blank" >Check</a>
-        </div>
-        {/* <!-- Project 4 --> */}
-        <h3 className="work__project-title">Platform Pro</h3>
-        <div className="work__img-wrapper work__image4">
-          {/* <img
-            className="lazy loading"
-            src="https://via.placeholder.com/900"
-            data-src="/platformpro.png"
-            alt="Platform Pro website"
-          /> */}
-         <Image
-               className="lazy loading"
-               src="/WordPress.png"
-               width={500}
-               height={350}
-               alt="Next.js Project"
-             />
-        </div>
-        <div className="work__project work__content4">
-          <h3 className="work__project-subtitle">WordPress Projects</h3>
-          <p className="work__project-description1">
-            Labore magna ut non labore Lorem nisi culpa sint et quis sint.
-            Enim pariatur deserunt do ad exercitation.
-          </p>
-          <p className="work__project-description2">
-            Ea ut non cupidatat consequat sint elit ipsum culpa dolor cillum
-            commodo. Do esse excepteur cillum deserunt duis incididunt. Eu
-            tempor ullamco aliqua consectetur incididunt anim dolor sunt
-            laboris adipisicing cupidatat sint.
-          </p>
-          <a className="btn work__project-btn" href="https://github.com/OSCAR-OD/Wordpress-Knowledeges" target="_blank" >Check</a>
-        </div>
-        {/* <!-- Project 5 --> */}
-        {/* <h3 className="work__project-title">Wallys Vegan</h3>
-        <div className="work__img-wrapper work__image5">
-          <img
-            className="lazy loading"
-            src="https://via.placeholder.com/900"
-            data-src="/wallysvegan.png"
-            alt="Wallys Vegan website"
-          />
-        </div>
-        <div className="work__project work__content5">
-          <h3 className="work__project-subtitle">Wallys Vegan</h3>
-          <p className="work__project-description1">
-            Sunt sint labore officia irure. Dolore pariatur nisi deserunt sunt
-            exercitation excepteur do reprehenderit fugiat Lorem sint ut.
-          </p>
-          <p className="work__project-description2">
-            Mollit ipsum mollit magna occaecat eiusmod sint fugiat est non
-            adipisicing esse fugiat deserunt minim. Enim occaecat velit eu non
-            amet nostrud officia duis.
-          </p>
-          <a className="btn work__project-btn" href="#">Website</a>
-        </div> */}
-        {/* <!-- Project 6 --> */}
-        {/* <h3 className="work__project-title">Old Portfolio</h3>
-        <div className="work__img-wrapper work__image6">
-          <img
-            className="lazy loading"
-            src="https://via.placeholder.com/900"
-            data-src="/portfolio.png"
-            alt="Portfolio website"
-          />
-        </div> */}
-        {/* <div className="work__project work__content6">
-          <h3 className="work__project-subtitle">Old Portfolio</h3>
-          <p className="work__project-description1">
-            Aliquip eu ad est reprehenderit veniam irure exercitation in velit
-            enim ipsum.
-          </p>
-          <p className="work__project-description2">
-            Elit est amet quis incididunt officia velit eiusmod do amet. Sint
-            non qui nulla sit ex cillum non pariatur velit proident ut aliqua
-            fugiat incididunt id minim.
-          </p>
-          <a className="btn work__project-btn" href="#">Website</a>
-        </div> */}
+      </div>
+
+      <div className="work__controls" aria-label="Carousel controls">
+        <button
+          className="work__control"
+          type="button"
+          aria-label="Move carousel right"
+          onClick={() => nudge(-1)}
+        >
+          <FaArrowLeft />
+        </button>
+        <button
+          className="work__control"
+          type="button"
+          aria-label="Move carousel left"
+          onClick={() => nudge(1)}
+        >
+          <FaArrowRight />
+        </button>
       </div>
     </section>
-    );
-}
+  );
+};
 
 export default Work;

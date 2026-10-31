@@ -10,6 +10,7 @@ import Hero from "./components/Hero/Hero";
 import About from "./components/About/About";
 import Featured from "./components/Featured/Featured";
 import Work from "./components/Work/Work";
+import PersonalWork from "./components/PersonalWork/PersonalWork";
 import Contact from "./components/Contact/Contact";
 
 export default function Home() {
@@ -25,6 +26,7 @@ export default function Home() {
       <About />
       <Featured />
       <Work />
+      <PersonalWork />
       <Contact />
     </main>
   );

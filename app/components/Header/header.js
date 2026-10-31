@@ -19,10 +19,9 @@ const Header = () => {
   return (
     <header className="header container">
       {/* <link rel="icon" 
-href="./logo.icon" 
-type="image"
-
-/> */}
+      href="./logo.icon" 
+      type="image"
+      /> */}
       <nav>
         <ul className="header__menu">
           <li>
@@ -61,7 +60,7 @@ type="image"
           <li>
             <a
               className="header__resume btn"
-              href="https://drive.google.com/file/d/1pbmoIH6oQUoUVF8Mtp4LO0-dxi1RLoOP/view?usp=sharing"
+              href="https://drive.google.com/file/d/1W8ox-6mX7k1PwFQ9fzAYfbbZwfUBsQXi/view?usp=sharing"
               target="_blank"
             >
               Resume

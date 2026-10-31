@@ -18,7 +18,8 @@
 .about__description {
   max-width: 60ch;
   font-size: var(--size-sm);
-  color: var(--clr-slate600);
+  /* color: var(--clr-slate600); */
+  color: var(--clr-wht);
 }
 
 .about__hr {
@@ -27,7 +28,8 @@
 
 .about__subtitle {
   font-size: var(--size-sm);
-  color: var(--clr-slate400);
+  /* color: var(--clr-slate400); */
+  color: var(--clr-light);
 }
 
 .about__ul-container {
@@ -45,7 +47,8 @@
 
 .about__list {
   font-size: var(--size-sm);
-  color: var(--clr-slate600);
+  /* color: var(--clr-slate600); */
+  color: var(--clr-wht);
 }
 
 .about__list::before {
